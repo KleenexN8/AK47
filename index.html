@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>射击游戏</title>
+    <style>
+        #gameCanvas {
+            border: 2px solid black;
+            cursor: crosshair;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        #score {
+            font-size: 24px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="score">得分: 0</div>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        let score = 0;
+
+        class Dog {
+            constructor() {
+                this.reset();
+                this.size = 50;
+                this.speed = Math.random() * 3 + 2;
+            }
+
+            reset() {
+                this.x = -50;
+                this.y = Math.random() * (canvas.height - 50);
+                this.alive = true;
+            }
+
+            update() {
+                if (this.alive) {
+                    this.x += this.speed;
+                    if (this.x > canvas.width) {
+                        this.reset();
+                    }
+                }
+            }
+
+            draw() {
+                if (this.alive) {
+                    ctx.fillStyle = 'brown';
+                    ctx.fillRect(this.x, this.y, this.size, this.size);
+                }
+            }
+
+            checkHit(x, y) {
+                if (this.alive &&
+                    x >= this.x && x <= this.x + this.size &&
+                    y >= this.y && y <= this.y + this.size) {
+                    this.alive = false;
+                    score += 10;
+                    scoreElement.textContent = `得分: ${score}`;
+                    setTimeout(() => this.reset(), 1000);
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        const dogs = Array(5).fill(null).map(() => new Dog());
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            dogs.forEach(dog => {
+                dog.update();
+                dog.draw();
+            });
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            dogs.forEach(dog => dog.checkHit(x, y));
+        });
+
+        gameLoop();
+    </script>
+</body>
+</html> 
